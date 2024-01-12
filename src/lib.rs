@@ -1,23 +1,43 @@
-trait Symbol<E, O> {
-    fn zap(self, env: &mut E) -> O;
+use std::{array::IntoIter, iter::Chain};
+
+trait Symbol {
+    fn zap<E, O>(self, env: &mut E) -> O;
 }
 
-struct Symbols<E, O, S: Symbol<E, O>, I, C: IntoIterator<Item = S, IntoIter = I>>(C);
-
-impl<E, O, S, I1, C1, I2, C2> Symbols<E, O, S, I1, C1>
+struct Symbols<S, I, C>(C)
 where
-    S: Symbol<E, O>,
+    S: Symbol,
+    C: IntoIterator<Item = S, IntoIter = I>;
+
+impl<S, I1, C1> Symbols<S, I1, C1>
+where
+    S: Symbol + Clone,
     I1: Iterator<Item = S>,
     C1: IntoIterator<Item = S, IntoIter = I1>,
-    I2: Iterator<Item = O>,
-    C2: IntoIterator<Item = O, IntoIter = I2>,
 {
-    pub fn zap(self) -> C2 {}
-    fn zapr(self, out: C2, env: &mut E) -> C2 {
-        let i = self.0.into_iter();
-        if let Ok(e) = i.next() {
-            let next = e.zap(&mut env);
-            next.0.into_iter().chain(self.zapr(out, env))
+    pub fn zap<
+        E: Default,
+        O,
+        I2: Iterator<Item = O>,
+        C2: IntoIterator<Item = O, IntoIter = I2> + Default + From<Chain<IntoIter<O, 1>, I2>>,
+    >(
+        self,
+    ) -> C2 {
+        self.zapr(C2::default(), &mut E::default())
+    }
+    fn zapr<
+        E,
+        O,
+        I2: Iterator<Item = O>,
+        C2: IntoIterator<Item = O, IntoIter = I2> + From<Chain<IntoIter<O, 1>, I2>>,
+    >(
+        self,
+        out: C2,
+        env: &mut E,
+    ) -> C2 {
+        let e = self.0.into_iter().next().clone();
+        if let Some(e) = e {
+            [e.zap(env)].into_iter().chain(self.zapr(out, env)).into()
         } else {
             out
         }
