@@ -1,7 +1,7 @@
 pub trait Symbol {
     type Env;
     type Output;
-    fn zap(self, env: Self::Env) -> (Self::Output, Self::Env);
+    fn zap(self, env: Self::Env) -> (Option<Self::Output>, Self::Env);
 }
 
 pub struct Symbols<S>(Vec<S>)
@@ -24,6 +24,10 @@ where
                 ([acc, vec![o]].concat(), e)
             })
             .0
+            .iter()
+            .flatten()
+            .cloned()
+            .collect()
     }
 }
 

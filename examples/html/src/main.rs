@@ -1,3 +1,4 @@
+use derive_new::new;
 use jukelet::*;
 use nom::{
     branch::alt,
@@ -22,7 +23,7 @@ impl From<char> for Token {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, new)]
 struct Env {
     maj: bool,
 }
@@ -30,17 +31,17 @@ struct Env {
 impl Symbol for Token {
     type Env = Env;
     type Output = char;
-    fn zap(self, env: Self::Env) -> (Self::Output, Self::Env) {
+    fn zap(self, env: Self::Env) -> (Option<Self::Output>, Self::Env) {
         match self {
             Self::Letter(c) => (
-                match &env.maj {
+                Some(match &env.maj {
                     true => c.to_ascii_uppercase(),
                     false => c.to_ascii_lowercase(),
-                },
+                }),
                 env,
             ),
-            Self::MajOn => todo!(),
-            Self::MajOff => todo!(),
+            Self::MajOn => (None, Env::new(true)),
+            Self::MajOff => (None, Env::new(false)),
         }
     }
 }
@@ -68,6 +69,6 @@ fn main() {
         .unwrap()
         .1
         .into();
-    let zapped = zappable.zap();
+    let zapped: String = zappable.zap().iter().collect();
     println!("{:?}", zapped);
 }
