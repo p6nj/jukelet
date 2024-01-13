@@ -1,48 +1,37 @@
-use std::{array::IntoIter, iter::Chain, ops::Add};
-
 pub trait Symbol {
     type Env;
     type Output;
     fn zap(self, env: Self::Env) -> (Self::Output, Self::Env);
 }
 
-pub struct Symbols<S, I, C>(C)
+pub struct Symbols<S>(Vec<S>)
 where
-    S: Symbol,
-    C: IntoIterator<Item = S, IntoIter = I>;
+    S: Symbol;
 
-impl<S, I1, C1> Symbols<S, I1, C1>
+impl<S> Symbols<S>
 where
     S: Symbol + Clone,
     <S as Symbol>::Env: Default,
-    I1: Iterator<Item = S>,
-    C1: IntoIterator<Item = S, IntoIter = I1>,
 {
-    pub fn zap<
-        I2: Iterator<Item = S::Output>,
-        C2: IntoIterator<Item = S::Output, IntoIter = I2>
-            + Default
-            + From<Chain<IntoIter<S::Output, 1>, I2>>
-            + Add<<S as Symbol>::Output, Output = C2>,
-    >(
-        self,
-    ) -> C2 {
+    pub fn zap(self) -> Vec<S::Output>
+    where
+        <S as Symbol>::Output: Clone,
+    {
         self.0
             .into_iter()
-            .fold((C2::default(), S::Env::default()), move |(acc, env), s| {
+            .fold((Vec::new(), S::Env::default()), move |(acc, env), s| {
                 let (o, e) = s.zap(env);
-                (acc + o, e)
+                ([acc, vec![o]].concat(), e)
             })
             .0
     }
 }
 
-impl<S, I, C> From<C> for Symbols<S, I, C>
+impl<S> From<Vec<S>> for Symbols<S>
 where
     S: Symbol,
-    C: IntoIterator<Item = S, IntoIter = I>,
 {
-    fn from(value: C) -> Self {
+    fn from(value: Vec<S>) -> Self {
         Symbols(value)
     }
 }

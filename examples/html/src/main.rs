@@ -1,15 +1,12 @@
-use std::str::Chars;
-
 use jukelet::*;
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take, take_till},
-    character::complete::{anychar, char, one_of},
-    combinator::{into, map_res, not, value, verify},
+    bytes::complete::tag,
+    character::complete::anychar,
+    combinator::{into, value, verify},
     error::Error,
     multi::many0,
-    sequence::delimited,
-    Err, IResult, InputIter, Parser,
+    IResult,
 };
 
 #[derive(Clone)]
@@ -48,8 +45,6 @@ impl Symbol for Token {
     }
 }
 
-type ParseResult<'a> = IResult<&'a str, Token>;
-
 fn letter<'a>(input: &'a str) -> IResult<&'a str, Token> {
     into(verify(anychar::<&'a str, Error<&'a str>>, |s: &char| {
         s != &'<'
@@ -69,11 +64,10 @@ fn tokens<'a>(input: &'a str) -> IResult<&'a str, Vec<Token>> {
 }
 
 fn main() {
-    let zappable: Symbols<Token, <Vec<Token> as IntoIterator>::IntoIter, Vec<Token>> =
-        tokens("<maj>h</maj>ello <maj>w</maj>orld!")
-            .unwrap()
-            .1
-            .into();
-    let zapped = zappable.zap::<Chars, String>();
-    println!("{zapped}");
+    let zappable: Symbols<Token> = tokens("<maj>h</maj>ello <maj>w</maj>orld!")
+        .unwrap()
+        .1
+        .into();
+    let zapped = zappable.zap();
+    println!("{:?}", zapped);
 }
