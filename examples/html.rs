@@ -65,10 +65,7 @@ fn tokens<'a>(input: &'a str) -> IResult<&'a str, Vec<Token>> {
 }
 
 fn main() {
-    let zappable: Symbols<Token> = tokens("<maj>h</maj>ello <maj>w</maj>orld!")
-        .unwrap()
-        .1
-        .into();
-    let zapped: String = zappable.zap().iter().collect();
+    let zapped: String =
+        Symbols::from(tokens("<maj>h</maj>ello <maj>w</maj>orld!").unwrap().1).zap();
     println!("{:?}", zapped);
 }
