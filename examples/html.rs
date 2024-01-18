@@ -23,7 +23,7 @@ impl From<char> for Token {
     }
 }
 
-#[derive(Default, new)]
+#[derive(new)]
 struct Env {
     maj: bool,
 }
@@ -65,12 +65,7 @@ fn tokens<'a>(input: &'a str) -> IResult<&'a str, Vec<Token>> {
 }
 
 fn main() {
-    let zapped: String =
-        Symbols::from(tokens("<maj>h</maj>ello <maj>w</maj>orld!").unwrap().1).zap::<String, Vec<
-            Option<<Token as Symbol>::Output>,
-        >, <Vec<
-            Option<<Token as Symbol>::Output>,
-        > as IntoIterator>::IntoIter>(
-        );
+    let zapped: String = Symbols::from(tokens("<maj>h</maj>ello <maj>w</maj>orld!").unwrap().1)
+        .zap(Vec::new(), Env::new(false));
     println!("{:?}", zapped);
 }

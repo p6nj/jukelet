@@ -11,47 +11,29 @@ where
     C: IntoIterator<Item = S, IntoIter = I>,
     S: Symbol;
 
-pub trait Extend<E> {
-    type Output;
-    fn extend(self, element: E) -> Self::Output;
-}
-
-impl<E, T> Extend<E> for T
-where
-    T: IntoIterator<Item = E> + FromIterator<E>,
-    E: Clone,
-{
-    type Output = T;
-    fn extend(self, element: E) -> Self::Output {
-        self.into_iter().chain([element].iter().cloned()).collect()
-    }
-}
-
 impl<S, C, I> Symbols<S, C, I>
 where
     S: Symbol + Clone,
-    <S as Symbol>::Env: Default,
     C: IntoIterator<Item = S, IntoIter = I>,
     I: Iterator<Item = S>,
 {
-    pub fn zap<O1, O2, I2>(self) -> O1
+    pub fn zap<O, O1, I1>(self, acc: O1, env: S::Env) -> O
     where
         <S as Symbol>::Output: Clone,
-        O1: FromIterator<<S as Symbol>::Output>,
-        O2: Default
-            + Extend<Option<<S as Symbol>::Output>, Output = O2>
-            + IntoIterator<Item = Option<<S as Symbol>::Output>, IntoIter = I2>,
-        I2: Iterator<Item = Option<<S as Symbol>::Output>>,
+        O1: IntoIterator<Item = <S as Symbol>::Output, IntoIter = I1>
+            + Extend<<S as Symbol>::Output>,
+        O: FromIterator<<S as Symbol>::Output>,
+        I1: Iterator<Item = <S as Symbol>::Output>,
     {
         self.0
             .into_iter()
-            .fold((O2::default(), S::Env::default()), move |(acc, env), s| {
+            .fold((acc, env), move |(mut acc, env), s| {
                 let (o, e) = s.zap(env);
-                (acc.extend(o), e)
+                acc.extend(o);
+                (acc, e)
             })
             .0
             .into_iter()
-            .flatten()
             .collect()
     }
 }
