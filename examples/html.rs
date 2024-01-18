@@ -52,15 +52,15 @@ fn letter<'a>(input: &'a str) -> IResult<&'a str, Token> {
     }))(input)
 }
 
-fn majon<'a>(input: &'a str) -> IResult<&'a str, Token> {
+fn majon(input: &str) -> IResult<&str, Token> {
     value(Token::MajOn, tag("<maj>"))(input)
 }
 
-fn majoff<'a>(input: &'a str) -> IResult<&'a str, Token> {
+fn majoff(input: &str) -> IResult<&str, Token> {
     value(Token::MajOff, tag("</maj>"))(input)
 }
 
-fn tokens<'a>(input: &'a str) -> IResult<&'a str, Vec<Token>> {
+fn tokens(input: &str) -> IResult<&str, Vec<Token>> {
     many0(alt((letter, majon, majoff)))(input)
 }
 
